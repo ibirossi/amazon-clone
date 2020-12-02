@@ -76,7 +76,7 @@ function Login() {
           Please see our Privacy Notice and our Interest-Based Ads Notice.
         </p>
         <button
-          classNme="login__registerButton"
+          className="login__registerButton"
           type="submit"
           onClick={register}
         >
