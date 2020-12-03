@@ -2,20 +2,22 @@ import React, { useState, useEffect } from "react";
 import "./Payment.css";
 import { useStateValue } from "../StateProvider";
 import CheckoutProduct from "./CheckoutProduct";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import CurrencyFormat from "react-currency-format";
 import { getBasketTotal } from "../Reducer";
-import axios from 'axios'
+import axios from '../Axios';
+
 
 
 function Payment() {
   const [{ basket, user }, dispatch] = useStateValue();
+  const history = useHistory();
 
   const stripe = useStripe();
   const elements = useElements();
 
-  const [succeeded, setSuceeded] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
   const [processing, setProcessing] = useState("");
   const [error, setError] = useState(null); //setting state for button
   const [disabled, setDisabled] = useState(true);
@@ -33,6 +35,8 @@ function Payment() {
     }  
     getClientSecret()
   }, [basket]) //whenever basket changes get a new secret
+  
+  console.log('the secret is', clientSecret)
 
   const handleSubmit = async (event) => {
     //stripe functionality here
@@ -43,6 +47,13 @@ function Payment() {
       payment_method: {
         card: elements.getElement(CardElement)
       }
+    }).then(({paymentIntent}) => {
+      //payment intent = payment confirmation
+      setSucceeded(true);
+      setError(null);
+      setProcessing(false);
+
+      history.replace('/orders')//stops going back to payment page
     }) 
 
   };
