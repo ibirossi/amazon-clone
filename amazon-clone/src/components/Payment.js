@@ -7,6 +7,7 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import CurrencyFormat from "react-currency-format";
 import { getBasketTotal } from "../Reducer";
 import axios from '../Axios';
+import {db} from '../firebase';
 
 
 
@@ -49,9 +50,24 @@ function Payment() {
       }
     }).then(({paymentIntent}) => {
       //payment intent = payment confirmation
+      
+      db.collection('users')
+      .doc(user?.uid)
+      .collection('orders')
+      .doc(paymentIntent.id)
+      .set({
+        basket: basket,
+        amount: paymentIntent.amount,
+        created: paymentIntent.created
+      })
+
       setSucceeded(true);
       setError(null);
       setProcessing(false);
+
+      dispatch({
+        type: 'EMPTY_BASKET'
+      })
 
       history.replace('/orders')//stops going back to payment page
     }) 
@@ -64,7 +80,7 @@ function Payment() {
     setDisabled(event.empty);
     setError(event.error ? event.error.message : "");
   };
-
+  
   return (
     <div className="payment">
       <div className="payment__container">
@@ -88,8 +104,9 @@ function Payment() {
             <h3>Review Items and Delivery</h3>
           </div>
           <div className="payment__items">
-            {basket.map((item) => (
+            {basket.map((item, i) => (
               <CheckoutProduct
+                key={i}
                 id={item.id}
                 title={item.title}
                 image={item.image}
@@ -111,7 +128,7 @@ function Payment() {
                 <CurrencyFormat
                   renderText={(value) => (
                     <>
-                      <h3>Order Toatal: {value}</h3>
+                      <h3>Order Total: {value}</h3>
                     </>
                   )}
                   decimalScale={2}
